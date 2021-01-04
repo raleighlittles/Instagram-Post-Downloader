@@ -14,6 +14,9 @@ chrome.runtime.onMessage.addListener(
           console.log("Uploaded date: " + uploadDate);
           console.log("Author: " + author);
           console.log("Caption: " + caption);
+
+          // Chrome prohibits use of the Downloads API inside of content scripts.
+          chrome.runtime.sendMessage({imgUrl: imageUrl, imgUploadDate: uploadDate, imgAuthor: author, imgCaption: caption});
       }
     }
   );
