@@ -10,13 +10,14 @@ chrome.browserAction.onClicked.addListener(function(tab) {
   });
 
 // Called once content script has retrieved the image URL and metadata.
+// Saves the final image.
 chrome.runtime.onMessage.addListener(
     function(request, sender, sendResponse) {
 
         console.log("Downloading image...");
 
         // Requires Chrome version 31 or later.
-        chrome.downloads.download({url: request.imgUrl})
+        chrome.downloads.download({url: request.imgUrl, filename: "instagram-downloader-placeholder-img.jpg"});
 
         console.log("Image downloaded!");
     }
