@@ -2,7 +2,8 @@
 chrome.runtime.onMessage.addListener(
     function(request, sender, sendResponse) {
       if( request.message === "clicked_browser_action" ) {
-          const imageUrl = document.querySelector("meta[property='og:image']").getAttribute('content');
+
+          const IgImgUrl = document.querySelector("meta[property='og:image']").getAttribute('content');
 
           const jsonLd = JSON.parse(document.querySelector('script[type="application/ld+json"]').innerText);
 
@@ -10,7 +11,7 @@ chrome.runtime.onMessage.addListener(
           const caption = jsonLd.caption;
           const uploadDate = jsonLd.uploadDate;
 
-          console.log("Image URL: " + imageUrl);
+          console.log("Image URL: " + IgImgUrl);
           console.log("Uploaded date: " + uploadDate);
           console.log("Author: " + author);
           console.log("Caption: " + caption);
@@ -21,15 +22,25 @@ chrome.runtime.onMessage.addListener(
 
           // Instead, we'll edit the raw JPG data (as a byte array) *before* saving the file.
 
-          let rawJpgData = fetch(imageUrl).then(r => r.blob()).arrayBuffer();
+          // You can only use `await` in an async function, but Chrome doesn't let you use asynchronous listeners.
+          // See: https://stackoverflow.com/a/63949798/1576548
 
-          // TODO: Modify EXIF data here.
+           async function getImgArrayBuffer(url) {
+            return await fetch(url).then(r => r.blob()).then(b => b.arrayBuffer());
+          }
 
-          // Chrome prohibits use of the Downloads API inside of content scripts.
-          // TODO: Fix the parameters on this! Some are no longer needed with the different approach.
-          // chrome.runtime.sendMessage({imgUrl: imageUrl, imgUploadDate: uploadDate, imgAuthor: author, imgCaption: caption});
+          getImgArrayBuffer(IgImgUrl).then(function(result) {
+             let rawJpgData = new Uint8Array(result);
+
+            // TODO: Modify EXIF data here.
+            let modifiedJpgData = rawJpgData; //PLACEHOLDER
+
+            let imgBlob = new Blob([modifiedJpgData], {type: "image/jpeg"});
+            let localImgUrl = URL.createObjectURL(imgBlob);
+
+            // TODO: Use the uploader's username and the current date as the filename.
+            chrome.runtime.sendMessage({imgName: "instagram-downloaded-image.jpg", imgUrl: localImgUrl});
+          });   
       }
-
-      
     }
   );

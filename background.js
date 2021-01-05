@@ -9,16 +9,12 @@ chrome.browserAction.onClicked.addListener(function(tab) {
     });
   });
 
-// Called once content script has retrieved the image URL and metadata.
-// Saves the final image.
+
+// Message handler that fires once the content script has retrieved the image.
+// (Chrome prohibits use of the Downloads API inside of *content* scripts.)
 chrome.runtime.onMessage.addListener(
     function(request, sender, sendResponse) {
-
-        console.log("Downloading image...");
-
         // Requires Chrome version 31 or later.
-        chrome.downloads.download({url: request.imgUrl, filename: "instagram-downloader-placeholder-img.jpg"});
-
-        console.log("Image downloaded!");
+        chrome.downloads.download({url: request.imgUrl, filename: request.imgName});
     }
 )
