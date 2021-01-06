@@ -42,5 +42,33 @@ chrome.runtime.onMessage.addListener(
             chrome.runtime.sendMessage({imgName: "instagram-downloaded-image.jpg", imgUrl: localImgUrl});
           });   
       }
+
+      // Sources: https://people.cs.umass.edu/~liberato/courses/2017-spring-compsci365/lecture-notes/05-utf-16-bit-twiddling-parsing-exif/
+      function appendExifData(rawImgArray) {
+        // From: https://en.wikipedia.org/wiki/List_of_file_signatures
+        // We know the first 12 bytes are occupied by the JPEG 'header'.
+        // The next 2 bytes record the JFIF version.
+        // The next byte is the Density unit.
+        // The next 2 bytes are the X-density.
+        // The next 2 bytes are the Y-density.
+        // The next byte is a horizontal pixel count.
+        // The next byte is a vertical pixel count.
+        // Lastly, comes the thumbnail data. Instagram's images don't seem to use the thumbnail data thankfully,
+        // so this is where our metadata will begin, on the 21st byte.
+
+        const exifMarker = "0xff 0xe1";
+
+        // This is the length of the entire EXIF block (JPG calls them 'APP') 
+        // that will contain the 'DateTimeOriginal' property and its actual value.
+        const dateTimeLength = "0xb8";
+
+        // 'Exif' in ASCII, followed by a null byte, followed by 'MM' in ASCII to denote
+        // big Endianness (M for motorola), followed by the constant '42' in whatever endianness is used.
+        const exifPrefix = "0x45 0x78 0x69 0x66 0x00 0x4d 0x4d 0x00 0x2a";
+        const IFDOffset = "0x00 0x00 0x00 0x08";
+
+        
+        const numIFdEntries = "0x00 0x01";
+      }
     }
   );
