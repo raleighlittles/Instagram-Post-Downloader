@@ -38,8 +38,7 @@ chrome.runtime.onMessage.addListener(
             let imgBlob = new Blob([modifiedJpgData], {type: "image/jpeg"});
             let localImgUrl = URL.createObjectURL(imgBlob);
 
-            // TODO: Use the uploader's username and the current date as the filename.
-            chrome.runtime.sendMessage({imgName: "instagram-downloaded-image.jpg", imgUrl: localImgUrl});
+            chrome.runtime.sendMessage({imgName: author.substring(1) + ".jpg", imgUrl: localImgUrl});
           });   
       }
 
@@ -60,14 +59,14 @@ chrome.runtime.onMessage.addListener(
 
         // This is the length of the entire EXIF block (JPG calls them 'APP') 
         // that will contain the 'DateTimeOriginal' property and its actual value.
-        const dateTimeLength = "0xb8";
+        const dateTimeLength = "0xb8"; // TODO Fix this
 
         // 'Exif' in ASCII, followed by a null byte, followed by 'MM' in ASCII to denote
         // big Endianness (M for motorola), followed by the constant '42' in whatever endianness is used.
         const exifPrefix = "0x45 0x78 0x69 0x66 0x00 0x4d 0x4d 0x00 0x2a";
         const IFDOffset = "0x00 0x00 0x00 0x08";
-
         
+        // 3 IFD entries for the 3 metadata fields we're using.
         const numIFdEntries = "0x00 0x01";
       }
     }
