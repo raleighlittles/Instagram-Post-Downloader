@@ -2,8 +2,6 @@
 chrome.runtime.onMessage.addListener(
     function(request, sender, sendResponse) {
       if( request.message === "clicked_browser_action" ) {
-          console.log("clicked download button...");
-
           const metadata = getPostMetadata();
 
           // On a single-post of an image, you'll only have an image tag.
@@ -38,7 +36,6 @@ chrome.runtime.onMessage.addListener(
                   chrome.runtime.sendMessage({imgName: constructDownloadedFilename(metadata.author.substring(1), "img"), imgUrl: localImgUrl});
               });
           } else {
-              console.log("Downloading video");
               const IgVideoUrl = videoElement.getAttribute('content');
 
               // Yes, there is still metadata on the page that we could have used for video. But saving metadata for videos
