@@ -8,12 +8,26 @@ chrome.runtime.onMessage.addListener(
 
           // The two regular expressions that follow are shamelessly taken from: https://github.com/instaloader/instaloader
           if (isUserLoggedIn) {
-              totalPostInfo = JSON.parse(document.documentElement.outerHTML.match(/<script type="text\/javascript">window\.__additionalDataLoaded\(.*?({.*"graphql":.*})\);<\/script>/)[1]);
+              postInfoObj = JSON.parse(document.documentElement.outerHTML.match(/<script type="text\/javascript">window\.__additionalDataLoaded\(.*?({.*"graphql":.*})\);<\/script>/)[1]);
           }
            else {
-              totalPostInfo = JSON.parse(document.documentElement.outerHTML.match(/<script type="text\/javascript">window\._sharedData = (.*)<\/script>/)[1].slice(0, -1));
+              postInfoObj = JSON.parse(document.documentElement.outerHTML.match(/<script type="text\/javascript">window\._sharedData = (.*)<\/script>/)[1].slice(0, -1));
           }
-          const metadata = getPostMetadata();
+
+          const metadata = getPostMetadata(); // For use later
+
+           graphqlObj = postInfoObj.entry_data.PostPage[0].graphql;
+
+           // Easy case -- post consists of a single image or video.
+          if (graphqlObj.shortcode_media.edge_sidecar_to_children == null)
+          {
+              // DL from graphqlObj.shortcode_media.display_url
+          }
+
+          else // Post has either multiple videos, multiple images, or some combination of both.
+          {    // Iterate over 'children' nodes.
+
+          }
       }
 
       // Sources: https://people.cs.umass.edu/~liberato/courses/2017-spring-compsci365/lecture-notes/05-utf-16-bit-twiddling-parsing-exif/
