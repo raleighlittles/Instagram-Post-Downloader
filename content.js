@@ -2,49 +2,18 @@
 chrome.runtime.onMessage.addListener(
     function(request, sender, sendResponse) {
       if( request.message === "clicked_browser_action" ) {
-          const metadata = getPostMetadata();
 
-          // On a single-post of an image, you'll only have an image tag.
-          // But on a single-post of an image, you'll have an image tag (the thumbnail) *and* the video tag.
-          const videoElement = document.querySelector("meta[property='og:video']");
-          if (videoElement == null) {
-              console.log("Downloading picture");
-              const IgImgUrl = document.querySelector("meta[property='og:image']").getAttribute('content');
+          // The GraphQL data location is different depending on whether the user is logged in or not. (Why?)
+          const isUserLoggedIn = (document.querySelector("html").classList[1] === "not-logged-in");
 
-              //  Initially, I tried to download the image file, then modify it in-place to edit the EXIF data.
-              // Unfortunately, it turns out that there isn't a clean way to be able to edit files via the browser
-              // (which makes sense in hindsight...)
-
-              // Instead, we'll edit the raw JPG data (as a byte array) *before* saving the file.
-
-              // You can only use `await` in an async function, but Chrome doesn't let you use asynchronous listeners.
-              // See: https://stackoverflow.com/a/63949798/1576548
-
-              async function getImgArrayBuffer(url) {
-                  return await fetch(url).then(r => r.blob()).then(b => b.arrayBuffer());
-              }
-
-              getImgArrayBuffer(IgImgUrl).then(function (result) {
-                  let rawJpgData = new Uint8Array(result);
-
-                  // TODO: Modify EXIF data here.
-                  let modifiedJpgData = rawJpgData; //PLACEHOLDER
-
-                  let imgBlob = new Blob([modifiedJpgData], {type: "image/jpeg"});
-                  let localImgUrl = URL.createObjectURL(imgBlob);
-
-                  chrome.runtime.sendMessage({imgName: constructDownloadedFilename(metadata.author.substring(1), "img"), imgUrl: localImgUrl});
-              });
-          } else {
-              const IgVideoUrl = videoElement.getAttribute('content');
-
-              // Yes, there is still metadata on the page that we could have used for video. But saving metadata for videos
-              // is dependent on the format (mkv vs mp4, etc.) and is just overall a bigger pain than saving metadata for images.
-              // We'll ignore metadata on videos for now.
-
-              chrome.runtime.sendMessage({imgName: constructDownloadedFilename(metadata.author.substring(1), "vid"),
-                  imgUrl: videoElement.getAttribute('content')});
+          // The two regular expressions that follow are shamelessly taken from: https://github.com/instaloader/instaloader
+          if (isUserLoggedIn) {
+              totalPostInfo = JSON.parse(document.documentElement.outerHTML.match(/<script type="text\/javascript">window\.__additionalDataLoaded\(.*?({.*"graphql":.*})\);<\/script>/)[1]);
           }
+           else {
+              totalPostInfo = JSON.parse(document.documentElement.outerHTML.match(/<script type="text\/javascript">window\._sharedData = (.*)<\/script>/)[1].slice(0, -1));
+          }
+          const metadata = getPostMetadata();
       }
 
       // Sources: https://people.cs.umass.edu/~liberato/courses/2017-spring-compsci365/lecture-notes/05-utf-16-bit-twiddling-parsing-exif/
