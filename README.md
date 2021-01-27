@@ -18,6 +18,8 @@ Does *not* support downloading from Stories or Story Highlights (yet!).
 
 1. Go to the main Chrome Extensions page: chrome://extensions/
 
+![screenshot-1](https://raw.githubusercontent.com/raleighlittles/Instagram-Post-Downloader/main/docs/extension-installation-instructions.png?token=AAQJY4OIM6UHD3OZJNLIDQTADJHMM)
+
 2. Click "Load unpacked"
 
 3. Point to the directory where you cloned this repo.
