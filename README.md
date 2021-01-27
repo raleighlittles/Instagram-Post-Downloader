@@ -6,14 +6,6 @@ A few weeks ago, it was announced that [hundreds of Instagram Chrome extensions 
 
 This is a Chrome extension for downloading Instagram posts.
 
-# Usage/Features
-
-Navigate to a specific Instagram post's page, e.g: `https://www.instagram.com/p/CKW1c2PLbq2/` then click the download icon in your toolbar.
-
-Supports all kinds of Instagram posts, both single and multiple, and includes video.
-
-Does *not* support downloading from Stories or Story Highlights (yet!).
-
 # Installation
 
 1. Go to the main Chrome Extensions page: chrome://extensions/
@@ -23,3 +15,23 @@ Does *not* support downloading from Stories or Story Highlights (yet!).
 2. Click "Load unpacked"
 
 3. Point to the directory where you cloned this repo.
+
+# Usage/Features
+
+Navigate to a specific Instagram post's page, e.g: `https://www.instagram.com/p/CKW1c2PLbq2/` then click the download icon in your toolbar.
+
+![screenshot-2](https://raw.githubusercontent.com/raleighlittles/Instagram-Post-Downloader/main/docs/browser-action-usage.png?token=AAQJY4PCHYJTZUBPLDXBUZTADJH5Q)
+
+Supports all kinds of Instagram posts, both single and multiple, and includes video. Also does not require login!
+
+Downloaded images/video contain the following in the filename:
+
+1. The uploader's username
+2. The date the post was uploaded
+3. The date the post was downloaded
+
+# Feature Wishlist
+
+- [ ] Add support for downloading stories
+- [ ] Add support for downloading story highlights
+- [ ] Include post metadata (caption, author, date uploaded) as part of the EXIF data in the highlighted image
