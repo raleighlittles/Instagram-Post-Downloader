@@ -20,19 +20,22 @@ chrome.runtime.onMessage.addListener(
            // Easy case -- post consists of a single image or video.
           if (graphQlMediaObj.edge_sidecar_to_children == null)
           {
-              downloadMediaFromPost(graphQlMediaObj.display_url,
+              // Video posts have a 'display_url' element too, which is just a thumbnail.
+              downloadMediaFromPost((graphQlMediaObj.is_video === false) ? graphQlMediaObj.display_url : graphQlMediaObj.video_url,
                   constructDownloadedFilename(metadata.author.substring(1),
-                      metadata.upload_date,
-                      (graphQlMediaObj.is_video === true) ? "vid" : "img"));
+                                              metadata.upload_date,
+                                    (graphQlMediaObj.is_video === true) ? "vid" : "img"));
           }
 
           else // Post has either multiple videos, multiple images, or some combination of both.
               for (var i = 0; i < graphQlMediaObj.edge_sidecar_to_children.edges.length; i++) {
+
                   const subpostObj = graphQlMediaObj.edge_sidecar_to_children.edges[i].node;
-                  downloadMediaFromPost(subpostObj.display_url,
+
+                  downloadMediaFromPost((subpostObj.is_video === false) ? subpostObj.display_url : subpostObj.video_url,
                       constructDownloadedFilename(metadata.author.substring(1),
-                          metadata.upload_date,
-                          (subpostObj.is_video === true) ? "vid" : "img"));
+                                                  metadata.upload_date,
+                                        (subpostObj.is_video === true) ? "vid" : "img"));
           }
       }
 
