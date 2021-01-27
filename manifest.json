@@ -1,6 +1,10 @@
 {
     "manifest_version": 2,
-    "name": "My Cool Extension",
+    "name": "Instagram Post downloader",
+    "description": "Saves the contents of the selected Instagram post.",
+    "default_locale": "en",
+    "author": "Raleigh Littles",
+    "homepage_url": "https://github.com/raleighlittles/Instagram-Post-Downloader",
     "version": "0.1",
     "content_scripts": [
       {
