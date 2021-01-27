@@ -15,6 +15,6 @@ chrome.browserAction.onClicked.addListener(function(tab) {
 chrome.runtime.onMessage.addListener(
     function(request, sender, sendResponse) {
         // Requires Chrome version 31 or later.
-        chrome.downloads.download({url: request.imgUrl, filename: request.imgName});
+        chrome.downloads.download({url: request.mediaUrl, filename: request.filename});
     }
 )

@@ -4,7 +4,7 @@ chrome.runtime.onMessage.addListener(
       if( request.message === "clicked_browser_action" ) {
 
           // The GraphQL data location is different depending on whether the user is logged in or not. (Why?)
-          const isUserLoggedIn = (document.querySelector("html").classList[1] === "not-logged-in");
+          const isUserLoggedIn = (document.querySelector("html").classList[1] !== "not-logged-in");
 
           // The two regular expressions that follow are shamelessly taken from: https://github.com/instaloader/instaloader
           if (isUserLoggedIn) {
@@ -14,48 +14,30 @@ chrome.runtime.onMessage.addListener(
               postInfoObj = JSON.parse(document.documentElement.outerHTML.match(/<script type="text\/javascript">window\._sharedData = (.*)<\/script>/)[1].slice(0, -1));
           }
 
-          const metadata = getPostMetadata(); // For use later
-
-           graphqlObj = postInfoObj.entry_data.PostPage[0].graphql;
+          const metadata = getPostMetadata(); // For use later...
+          const graphQlMediaObj = postInfoObj.entry_data.PostPage[0].graphql.shortcode_media;
 
            // Easy case -- post consists of a single image or video.
-          if (graphqlObj.shortcode_media.edge_sidecar_to_children == null)
+          if (graphQlMediaObj.edge_sidecar_to_children == null)
           {
-              // DL from graphqlObj.shortcode_media.display_url
+              downloadMediaFromPost(graphQlMediaObj.display_url,
+                  constructDownloadedFilename(metadata.author.substring(1),
+                      metadata.upload_date,
+                      (graphQlMediaObj.is_video === true) ? "vid" : "img"));
           }
 
           else // Post has either multiple videos, multiple images, or some combination of both.
-          {    // Iterate over 'children' nodes.
-
+              for (var i = 0; i < graphQlMediaObj.edge_sidecar_to_children.edges.length; i++) {
+                  const subpostObj = graphQlMediaObj.edge_sidecar_to_children.edges[i].node;
+                  downloadMediaFromPost(subpostObj.display_url,
+                      constructDownloadedFilename(metadata.author.substring(1),
+                          metadata.upload_date,
+                          (subpostObj.is_video === true) ? "vid" : "img"));
           }
       }
 
-      // Sources: https://people.cs.umass.edu/~liberato/courses/2017-spring-compsci365/lecture-notes/05-utf-16-bit-twiddling-parsing-exif/
-      function appendExifData(rawImgArray) {
-        // From: https://en.wikipedia.org/wiki/List_of_file_signatures
-        // We know the first 12 bytes are occupied by the JPEG 'header'.
-        // The next 2 bytes record the JFIF version.
-        // The next byte is the Density unit.
-        // The next 2 bytes are the X-density.
-        // The next 2 bytes are the Y-density.
-        // The next byte is a horizontal pixel count.
-        // The next byte is a vertical pixel count.
-        // Lastly, comes the thumbnail data. Instagram's images don't seem to use the thumbnail data thankfully,
-        // so this is where our metadata will begin, on the 21st byte.
-
-        const exifMarker = "0xff 0xe1";
-
-        // This is the length of the entire EXIF block (JPG calls them 'APP') 
-        // that will contain the 'DateTimeOriginal' property and its actual value.
-        const dateTimeLength = "0xb8"; // TODO Fix this
-
-        // 'Exif' in ASCII, followed by a null byte, followed by 'MM' in ASCII to denote
-        // big Endianness (M for motorola), followed by the constant '42' in whatever endianness is used.
-        const exifPrefix = "0x45 0x78 0x69 0x66 0x00 0x4d 0x4d 0x00 0x2a";
-        const IFDOffset = "0x00 0x00 0x00 0x08";
-        
-        // 3 IFD entries for the 3 metadata fields we're using.
-        const numIFdEntries = "0x00 0x01";
+      function downloadMediaFromPost(mediaUrl, filenameToSaveAs) {
+          chrome.runtime.sendMessage({mediaUrl: mediaUrl, filename: filenameToSaveAs});
       }
 
       function getPostMetadata() {
@@ -63,22 +45,19 @@ chrome.runtime.onMessage.addListener(
           return {author : jsonLd.author.alternateName, caption: jsonLd.caption, upload_date: jsonLd.uploadDate};
       }
 
-      function constructDownloadedFilename(author, mediaFmt) {
+      function constructDownloadedFilename(author, dateUploaded, mediaFmt) {
           const today = new Date();
-          const timestamp = ''.concat(today.getFullYear(),
-                                  '_', today.getMonth(),
-                                  '_', today.getDate(),
-                                  '_', today.getHours(),
-                                  '_', today.getMinutes(),
-                                  '_', today.getSeconds());
+          const timestamp = 'DA_'.concat(today.getFullYear(),
+                                  '-', today.getMonth(),
+                                  '-', today.getDate(),
+                                  'T', today.getHours(),
+                                  '', today.getMinutes(),
+                                  '', today.getSeconds());
 
-          if (mediaFmt === "img") {
-              return author.concat('__T', timestamp, "__img.jpg");
-          }
-
-          else {
-              return author.concat('__T', timestamp, "__vid.mp4");
-          }
+          // There is a bug in the Chrome API that doesn't let you save filenames with a colon in them.
+          // See: https://bugzilla.mozilla.org/show_bug.cgi?id=1383262
+          const uploadDate = 'DC_'.concat(dateUploaded.replaceAll(":", ""));
+          return author.concat("__", timestamp, "__", uploadDate, (mediaFmt === "vid") ? "_v.mp4" : "_i.jpg");
       }
     }
   );
