@@ -1,0 +1,15 @@
+# Stories
+
+To view (?) a user's stories, go to instagram.com/stories/<username>
+
+# Story highlights
+
+To check the number of story highlights a user's profile has, look at the 'config' object and search for 'highlight_reel_count'.
+
+To view overall story highlights, query:
+
+https://www.instagram.com/graphql/query/?query_hash=d4d88dc1500312af6f937f7b804c68c3&variables=%7B%22user_id%22%3A%22177114081%22%2C%22include_chaining%22%3Atrue%2C%22include_reel%22%3Atrue%2C%22include_suggested_users%22%3Afalse%2C%22include_logged_out_extras%22%3Afalse%2C%22include_highlight_reels%22%3Atrue%2C%22include_live_status%22%3Atrue%7D
+
+but with your custom user's id. (?)
+
+In the response object, look for 'edge_highlight_reels'
