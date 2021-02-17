@@ -14,7 +14,6 @@ chrome.runtime.onMessage.addListener(
               postInfoObj = JSON.parse(document.documentElement.outerHTML.match(/<script type="text\/javascript">window\._sharedData = (.*)<\/script>/)[1].slice(0, -1));
           }
 
-          const metadata = getPostMetadata(); // For use later...
           const graphQlMediaObj = postInfoObj.entry_data.PostPage[0].graphql.shortcode_media;
 
            // Easy case -- post consists of a single image or video.
@@ -22,8 +21,8 @@ chrome.runtime.onMessage.addListener(
           {
               // Video posts have a 'display_url' element too, which is just a thumbnail.
               downloadMediaFromPost((graphQlMediaObj.is_video === false) ? graphQlMediaObj.display_url : graphQlMediaObj.video_url,
-                  constructDownloadedFilename(metadata.author.substring(1),
-                                              metadata.upload_date,
+                  constructDownloadedFilename(graphQlMediaObj.owner.username,
+                                              graphQlMediaObj.taken_at_timestamp,
                                     (graphQlMediaObj.is_video === true) ? "vid" : "img"));
           }
 
@@ -33,8 +32,8 @@ chrome.runtime.onMessage.addListener(
                   const subpostObj = graphQlMediaObj.edge_sidecar_to_children.edges[i].node;
 
                   downloadMediaFromPost((subpostObj.is_video === false) ? subpostObj.display_url : subpostObj.video_url,
-                      constructDownloadedFilename(metadata.author.substring(1),
-                                                  metadata.upload_date,
+                      constructDownloadedFilename(graphQlMediaObj.owner.username,
+                                                  graphQlMediaObj.taken_at_timestamp,
                                         (subpostObj.is_video === true) ? "vid" : "img"));
           }
       }
@@ -43,12 +42,7 @@ chrome.runtime.onMessage.addListener(
           chrome.runtime.sendMessage({mediaUrl: mediaUrl, filename: filenameToSaveAs});
       }
 
-      function getPostMetadata() {
-          const jsonLd = JSON.parse(document.querySelector('script[type="application/ld+json"]').innerText);
-          return {author : jsonLd.author.alternateName, caption: jsonLd.caption, upload_date: jsonLd.uploadDate};
-      }
-
-      function constructDownloadedFilename(author, dateUploaded, mediaFmt) {
+      function constructDownloadedFilename(author, dateUploadedUnixTs, mediaFmt) {
           const today = new Date();
           const timestamp = 'DA_'.concat(today.getFullYear(),
                                   '-', today.getMonth(),
@@ -57,9 +51,16 @@ chrome.runtime.onMessage.addListener(
                                   '', today.getMinutes(),
                                   '', today.getSeconds());
 
-          // There is a bug in the Chrome API that doesn't let you save filenames with a colon in them.
-          // See: https://bugzilla.mozilla.org/show_bug.cgi?id=1383262
-          const uploadDate = 'DC_'.concat(dateUploaded.replaceAll(":", ""));
+          // Unix epochs/timestamps are in units of seconds, whereas javascript date objects use milliseconds.
+          const uploadDateObj = new Date(dateUploadedUnixTs * 1000);
+
+          const uploadDate = 'DC_'.concat(uploadDateObj.getFullYear(),
+              '-', uploadDateObj.getMonth(),
+              '-', uploadDateObj.getDate(),
+              'T', uploadDateObj.getHours(),
+              '', uploadDateObj.getMinutes(),
+              '', uploadDateObj.getSeconds());
+
           return author.concat("__", timestamp, "__", uploadDate, (mediaFmt === "vid") ? "_v.mp4" : "_i.jpg");
       }
     }
