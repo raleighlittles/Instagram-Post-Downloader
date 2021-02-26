@@ -5,16 +5,17 @@ chrome.runtime.onMessage.addListener(
 
           // The GraphQL data location is different depending on whether the user is logged in or not. (Why?)
           const isUserLoggedIn = (document.querySelector("html").classList[1] !== "not-logged-in");
+          var graphQlMediaObj;
 
           // The two regular expressions that follow are shamelessly taken from: https://github.com/instaloader/instaloader
           if (isUserLoggedIn) {
               postInfoObj = JSON.parse(document.documentElement.outerHTML.match(/<script type="text\/javascript">window\.__additionalDataLoaded\(.*?({.*"graphql":.*})\);<\/script>/)[1]);
+              graphQlMediaObj = postInfoObj.graphql.shortcode_media;
           }
            else {
               postInfoObj = JSON.parse(document.documentElement.outerHTML.match(/<script type="text\/javascript">window\._sharedData = (.*)<\/script>/)[1].slice(0, -1));
+              graphQlMediaObj = postInfoObj.entry_data.PostPage[0].graphql.shortcode_media;
           }
-
-          const graphQlMediaObj = postInfoObj.entry_data.PostPage[0].graphql.shortcode_media;
 
            // Easy case -- post consists of a single image or video.
           if (graphQlMediaObj.edge_sidecar_to_children == null)
